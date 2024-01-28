@@ -1,8 +1,10 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Pong wars | Koen van Gilst</title>
+    <title>Ball Fighters | Koen van Gilst (Reworked by Jeff Emanuel)</title>
     <link rel="canonical" href="https://pong-wars.koenvangilst.nl/" />
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
       html {
         height: 100%;
@@ -17,11 +19,29 @@
         align-items: center;
         background: linear-gradient(to bottom, #172b36 0%, #d9e8e3 100%);
       }
+      html, body {
+        font-family: 'Montserrat', sans-serif;
+      }
+      #container,
+      #charts {
+        margin: 10px;
+      }
+
+      #container {
+        flex-grow: 1; /* Allows the game container to grow and take available space */
+      }
+
+      #charts {
+        flex-shrink: 0; /* Prevents the chart container from shrinking */
+        display: flex;
+        flex-direction: column;
+        justify-content: space-around;
+      }
 
       #container {
         display: flex;
         width: 100%;
-        max-width: 1050px;
+        max-width: 1000px;
         align-items: center;
         flex-direction: column;
         height: 100%;
@@ -46,12 +66,31 @@
 
       #made {
         font-family: monospace;
-        margin-top: auto;
+        margin-top: 50px;
         margin-bottom: 20px;
         font-size: 12px;
         padding-left: 20px;
       }
 
+      #title {
+        font-size: 32px;
+        color: #ff9932;
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 20px;
+        font-weight: 700;
+      }
+      #game-info {
+        margin-top: 20px;
+        color: #f1f6f4;
+        background-color: rgba(23, 43, 54, 0.4);
+        padding: 10px;
+        border-radius: 15px;
+        box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        line-height: 1.6;
+        font-size: 12px;
+      }
+      
       #made a {
         color: #172b36;
       }
@@ -60,21 +99,54 @@
 
   <body>
     <div id="container">
-      <canvas id="pongCanvas" width="800" height="800"></canvas>
+      <div id="title">
+        Ball Fighters</div>
+      <canvas id="pongCanvas" width="1000" height="1000"></canvas>
       <div id="score"></div>
       <p id="made">
-        made by <a href="https://koenvangilst.nl">Koen van Gilst</a> | source on
-        <a href="https://github.com/vnglst/pong-wars">github</a>
+        Original made by <a href="https://koenvangilst.nl">Koen van Gilst</a>; Changes by <a href="https://github.com/Dicklesworthstone">Jeff Emanuel</a> | Original source on
+        <a href="https://github.com/vnglst/pong-wars">github</a>; Changes on <a href="https://github.com/Dicklesworthstone/ball_fighters">github</a>
       </p>
+      <p id="game-info">
+        <strong>Game Controls and Mechanics:</strong><br>
+        <strong>Player 1:</strong> Use the arrow keys (Up, Down, Left, Right) for movement. The right shift key provides a temporary speed boost but reduces control.<br>
+        <strong>Player 2:</strong> Use the 'W', 'A', 'S', 'D' keys for movement. The left shift key acts as a speed boost with a control penalty.<br>
+        <br>
+        Both players can influence the path of their ball using their respective movement keys. 
+        The shift key activates a speed boost, making the ball move faster but harder to control. 
+        The goal is to cover as many squares as possible with your color. 
+        The control influence chart indicates how much the player has altered the ball's velocity from its natural velocity.
+      </p>
+    </div>
+
+    <div id="charts" style="width: 400px; height: 800px; margin-left: 20px">
+      <canvas id="velocityChart" width="400" height="200"></canvas>
+      <canvas id="accelerationChart" width="400" height="200"></canvas>
+      <canvas id="scoreChart" width="400" height="200"></canvas>
+      <canvas id="controlChart" width="400" height="200"></canvas>
     </div>
   </body>
 
   <script>
+    let lastChartUpdate = Date.now();
+    const chartUpdateInterval = 1000; // Update charts every 1000 milliseconds (1 second)
+
     // Add global variables for speed boost and control loss
     let speedBoost1 = 1.0;
     let speedBoost2 = 1.0;
     let controlLoss1 = 1.0;
     let controlLoss2 = 1.0;
+
+    let baseDx1 = 10,
+      baseDy1 = 10; // Base velocities for player 1
+    let baseDx2 = -10,
+      baseDy2 = -10; // Base velocities for player 2
+
+    // Existing velocity variables
+    let dx1 = baseDx1,
+      dy1 = baseDy1;
+    let dx2 = baseDx2,
+      dy2 = baseDy2;
 
     document.addEventListener("keydown", keyDownHandler, false);
     document.addEventListener("keyup", keyUpHandler, false);
@@ -92,26 +164,38 @@
     let shiftPressed2 = false;
 
     function applySpeedBoost() {
-      const maxSpeed = 50; // Define a maximum speed limit
+      const maxSpeed = 30; // Define a maximum speed limit
       const boostFactor = 1.25; // Define the speed boost factor
-    
+
       // Check if Player 1's shift is pressed and apply speed boost if below maximum speed
       if (shiftPressed1 && Math.abs(dx1) < maxSpeed) {
-        dx1 = dx1 > 0 ? Math.min(dx1 * boostFactor, maxSpeed) : Math.max(dx1 * boostFactor, -maxSpeed);
-        dy1 = dy1 > 0 ? Math.min(dy1 * boostFactor, maxSpeed) : Math.max(dy1 * boostFactor, -maxSpeed);
+        dx1 =
+          dx1 > 0
+            ? Math.min(dx1 * boostFactor, maxSpeed)
+            : Math.max(dx1 * boostFactor, -maxSpeed);
+        dy1 =
+          dy1 > 0
+            ? Math.min(dy1 * boostFactor, maxSpeed)
+            : Math.max(dy1 * boostFactor, -maxSpeed);
         // Reset shiftPressed1 to prevent continuous boost application
-        shiftPressed1 = false; 
+        shiftPressed1 = false;
       }
-    
+
       // Check if Player 2's shift is pressed and apply speed boost if below maximum speed
       if (shiftPressed2 && Math.abs(dx2) < maxSpeed) {
-        dx2 = dx2 > 0 ? Math.min(dx2 * boostFactor, maxSpeed) : Math.max(dx2 * boostFactor, -maxSpeed);
-        dy2 = dy2 > 0 ? Math.min(dy2 * boostFactor, maxSpeed) : Math.max(dy2 * boostFactor, -maxSpeed);
+        dx2 =
+          dx2 > 0
+            ? Math.min(dx2 * boostFactor, maxSpeed)
+            : Math.max(dx2 * boostFactor, -maxSpeed);
+        dy2 =
+          dy2 > 0
+            ? Math.min(dy2 * boostFactor, maxSpeed)
+            : Math.max(dy2 * boostFactor, -maxSpeed);
         // Reset shiftPressed2 to prevent continuous boost application
         shiftPressed2 = false;
       }
     }
-        
+
     function keyDownHandler(e) {
       if (e.key == "Right" || e.key == "ArrowRight") {
         rightPressed1 = true;
@@ -198,8 +282,6 @@
       }
     }
 
-
-
     function updateVelocity() {
       // Adjust control based on whether speed boost is active
       let controlFactor1 = shiftPressed1 ? controlLoss1 : 1;
@@ -223,11 +305,11 @@
 
       // Gradually reduce speed boost and restore control
       if (speedBoost1 > 1.0) {
-        speedBoost1 -= 0.10; // Adjust decay rate as needed
+        speedBoost1 -= 0.1; // Adjust decay rate as needed
         controlLoss1 += 0.02; // Adjust recovery rate as needed
       }
       if (speedBoost2 > 1.0) {
-        speedBoost2 -= 0.10; // Adjust decay rate as needed
+        speedBoost2 -= 0.1; // Adjust decay rate as needed
         controlLoss2 += 0.02; // Adjust recovery rate as needed
       }
     }
@@ -254,7 +336,7 @@
     const TEAM2 = colorPalette.NocturnalExpedition;
     const TEAM2_BALL = colorPalette.MysticMint;
 
-    const squareSize = 15;
+    const squareSize = 30;
     const numSquaresX = canvas.width / squareSize;
     const numSquaresY = canvas.height / squareSize;
     let squares = [];
@@ -268,13 +350,9 @@
 
     let x1 = canvas.width / 4;
     let y1 = canvas.height / 2;
-    let dx1 = 10;
-    let dy1 = 10;
 
     let x2 = (canvas.width / 4) * 3;
     let y2 = canvas.height / 2;
-    let dx2 = -10;
-    let dy2 = -10;
 
     function drawBall(x, y, color) {
       ctx.beginPath();
@@ -301,21 +379,33 @@
       let steps = Math.max(Math.abs(dx), Math.abs(dy));
       let stepDx = dx / steps;
       let stepDy = dy / steps;
-    
+
       for (let step = 0; step < steps; step++) {
         x += stepDx;
         y += stepDy;
-    
+
         // Expand the collision check to cover the entire diameter of the ball
-        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) { // Increase the granularity of the angle check
-          for (let radius = 0; radius <= squareSize / 2; radius += squareSize / 4) { // Check at multiple radii
+        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
+          // Increase the granularity of the angle check
+          for (
+            let radius = 0;
+            radius <= squareSize / 2;
+            radius += squareSize / 4
+          ) {
+            // Check at multiple radii
             let checkX = x + Math.cos(angle) * radius;
             let checkY = y + Math.sin(angle) * radius;
-    
+
             let i = Math.floor(checkX / squareSize);
             let j = Math.floor(checkY / squareSize);
-    
-            if (i >= 0 && i < numSquaresX && j >= 0 && j < numSquaresY && squares[i][j] !== color) {
+
+            if (
+              i >= 0 &&
+              i < numSquaresX &&
+              j >= 0 &&
+              j < numSquaresY &&
+              squares[i][j] !== color
+            ) {
               squares[i][j] = color;
               dx = -dx + randomNum(-0.15, 0.15);
               dy = -dy + randomNum(-0.15, 0.15);
@@ -324,10 +414,10 @@
           }
         }
       }
-    
+
       return { dx, dy };
     }
-    
+
     function updateScoreElement() {
       let team1Score = 0;
       let team2Score = 0;
@@ -341,24 +431,335 @@
         }
       }
 
-      scoreElement.textContent = `day ${team1Score} | night ${team2Score}`;
+      scoreElement.textContent = `Player1 ${team1Score} | Player2 ${team2Score}`;
+    }
+
+    let velocityChart, accelerationChart, scoreChart, controlChart;
+
+    function initCharts() {
+      // Velocity Chart Initialization
+      const velocityCtx = document
+        .getElementById("velocityChart")
+        .getContext("2d");
+      velocityChart = new Chart(velocityCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Player 1 Velocity",
+              data: [],
+              borderColor: "blue",
+              fill: false,
+            },
+            {
+              label: "Player 2 Velocity",
+              data: [],
+              borderColor: "red",
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: 'white' // Change tick color to white
+              }
+            },
+            x: {
+              ticks: {
+                color: 'white' // Change tick color to white
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'white' // Change legend text to white
+              }
+            }
+          }
+        }
+        
+      });
+
+      // Acceleration Chart Initialization
+      const accelerationCtx = document
+        .getElementById("accelerationChart")
+        .getContext("2d");
+      accelerationChart = new Chart(accelerationCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Player 1 Acceleration",
+              data: [],
+              borderColor: "green",
+              fill: false,
+            },
+            {
+              label: "Player 2 Acceleration",
+              data: [],
+              borderColor: "orange",
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: 'white' // Change tick color to white
+              }
+            },
+            x: {
+              ticks: {
+                color: 'white' // Change tick color to white
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'white' // Change legend text to white
+              }
+            }
+          }
+        }
+        
+      });
+
+      // Score Chart Initialization
+      const scoreCtx = document.getElementById("scoreChart").getContext("2d");
+      scoreChart = new Chart(scoreCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Score Differential (Player 1 - Player 2)",
+              data: [],
+              borderColor: "purple",
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: 'white' // Change tick color to white
+              }
+            },
+            x: {
+              ticks: {
+                color: 'white' // Change tick color to white
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'white' // Change legend text to white
+              }
+            }
+          }
+        }
+        
+      });
+
+      // Control Influence Chart Initialization
+      const controlCtx = document
+        .getElementById("controlChart")
+        .getContext("2d");
+      controlChart = new Chart(controlCtx, {
+        type: "line",
+        data: {
+          labels: [],
+          datasets: [
+            {
+              label: "Player 1 Control Influence",
+              data: [],
+              borderColor: "cyan",
+              fill: false,
+            },
+            {
+              label: "Player 2 Control Influence",
+              data: [],
+              borderColor: "magenta",
+              fill: false,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                color: 'white' // Change tick color to white
+              }
+            },
+            x: {
+              ticks: {
+                color: 'white' // Change tick color to white
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              labels: {
+                color: 'white' // Change legend text to white
+              }
+            }
+          }
+        }
+        
+      });
+    }
+
+    // Call initCharts to initialize the charts before starting the animation
+    initCharts();
+
+    function calculateVelocity(dx, dy) {
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    let lastVelocity1 = 0,
+      lastVelocity2 = 0;
+
+    function calculateAcceleration(currentVelocity, lastVelocity) {
+      return currentVelocity - lastVelocity;
+    }
+
+    function calculateControlInfluence(playerVelocity, naturalVelocity) {
+      return Math.abs(playerVelocity - naturalVelocity);
+    }
+
+    // Compute natural velocities
+    function calculateNaturalVelocity(player) {
+      if (player === 1) {
+        return calculateVelocity(baseDx1, baseDy1);
+      } else {
+        return calculateVelocity(baseDx2, baseDy2);
+      }
+    }
+
+    // Update function to calculate control influence
+    function updateControlInfluence() {
+      const naturalVelocity1 = calculateNaturalVelocity(1);
+      const naturalVelocity2 = calculateNaturalVelocity(2);
+      const player1ControlInfluence = calculateControlInfluence(
+        calculateVelocity(dx1, dy1),
+        naturalVelocity1
+      );
+      const player2ControlInfluence = calculateControlInfluence(
+        calculateVelocity(dx2, dy2),
+        naturalVelocity2
+      );
+
+      // Update control chart
+      controlChart.data.labels.push(new Date().toLocaleTimeString());
+      controlChart.data.datasets[0].data.push(player1ControlInfluence);
+      controlChart.data.datasets[1].data.push(player2ControlInfluence);
+      controlChart.update();
+    }
+
+    function getCurrentScore(player) {
+      let team1Score = 0;
+      let team2Score = 0;
+      for (let i = 0; i < numSquaresX; i++) {
+        for (let j = 0; j < numSquaresY; j++) {
+          if (squares[i][j] === TEAM1) {
+            team1Score++;
+          } else if (squares[i][j] === TEAM2) {
+            team2Score++;
+          }
+        }
+      }
+
+      return player === 1 ? team1Score : team2Score;
+    }
+
+    function updateCharts() {
+      const time = new Date().toLocaleTimeString();
+
+      // Velocity calculations
+      const player1Velocity = calculateVelocity(dx1, dy1);
+      const player2Velocity = calculateVelocity(dx2, dy2);
+
+      // Acceleration calculations
+      const player1Acceleration = calculateAcceleration(
+        player1Velocity,
+        lastVelocity1
+      );
+      const player2Acceleration = calculateAcceleration(
+        player2Velocity,
+        lastVelocity2
+      );
+      lastVelocity1 = player1Velocity;
+      lastVelocity2 = player2Velocity;
+
+      updateControlInfluence();
+
+      // Score calculations
+      const player1Score = getCurrentScore(1);
+      const player2Score = getCurrentScore(2);
+      // Score differential calculation
+      const scoreDifferential = player1Score - player2Score;
+
+      // Update score chart
+      scoreChart.data.labels.push(time);
+      scoreChart.data.datasets[0].data.push(scoreDifferential); // Update to use score differential
+
+      // Update velocity chart
+      velocityChart.data.labels.push(time);
+      velocityChart.data.datasets[0].data.push(player1Velocity);
+      velocityChart.data.datasets[1].data.push(player2Velocity);
+
+      // Update acceleration chart
+      accelerationChart.data.labels.push(time);
+      accelerationChart.data.datasets[0].data.push(player1Acceleration);
+      accelerationChart.data.datasets[1].data.push(player2Acceleration);
+
+      // Update all charts
+      velocityChart.update();
+      accelerationChart.update();
+      controlChart.update();
+      scoreChart.update();
     }
 
     function draw() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       drawSquares();
-    
+
       // Ball drawing and updating logic
       drawBall(x1, y1, TEAM1_BALL);
-      let bounce1 = updateSquareAndBounce(x1, y1, dx1 * speedBoost1, dy1 * speedBoost1, TEAM1);
+      let bounce1 = updateSquareAndBounce(
+        x1,
+        y1,
+        dx1 * speedBoost1,
+        dy1 * speedBoost1,
+        TEAM1
+      );
       dx1 = bounce1.dx;
       dy1 = bounce1.dy;
-    
+
       drawBall(x2, y2, TEAM2_BALL);
-      let bounce2 = updateSquareAndBounce(x2, y2, dx2 * speedBoost2, dy2 * speedBoost2, TEAM2);
+      let bounce2 = updateSquareAndBounce(
+        x2,
+        y2,
+        dx2 * speedBoost2,
+        dy2 * speedBoost2,
+        TEAM2
+      );
       dx2 = bounce2.dx;
       dy2 = bounce2.dy;
-    
+
       updateScoreElement();
 
       if (
@@ -392,9 +793,14 @@
       x2 += dx2;
       y2 += dy2;
 
-      applySpeedBoost()
+      applySpeedBoost();
       updateVelocity();
 
+      let currentTime = Date.now();
+      if (currentTime - lastChartUpdate > chartUpdateInterval) {
+        updateCharts();
+        lastChartUpdate = currentTime;
+      }
       requestAnimationFrame(draw);
     }
 
