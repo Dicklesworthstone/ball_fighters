@@ -109,8 +109,8 @@
       </p>
       <p id="game-info">
         <strong>Game Controls and Mechanics:</strong><br>
-        <strong>Player 1:</strong> Use the arrow keys (Up, Down, Left, Right) for movement. The right shift key provides a temporary speed boost but reduces control.<br>
-        <strong>Player 2:</strong> Use the 'W', 'A', 'S', 'D' keys for movement. The left shift key acts as a speed boost with a control penalty.<br>
+        <strong>Player 1:</strong> Use the 'W', 'A', 'S', 'D' keys for movement. The left shift key acts as a speed boost with a control penalty.<br>
+        <strong>Player 2:</strong> Use the arrow keys (Up, Down, Left, Right) for movement. The right shift key provides a temporary speed boost but reduces control.<br>
         <br>
         Both players can influence the path of their ball using their respective movement keys. 
         The shift key activates a speed boost, making the ball move faster but harder to control. 
@@ -198,86 +198,86 @@
 
     function keyDownHandler(e) {
       if (e.key == "Right" || e.key == "ArrowRight") {
-        rightPressed1 = true;
-      } else if (e.key == "Left" || e.key == "ArrowLeft") {
-        leftPressed1 = true;
-      } else if (e.key == "Up" || e.key == "ArrowUp") {
-        upPressed1 = true;
-      } else if (e.key == "Down" || e.key == "ArrowDown") {
-        downPressed1 = true;
-      } else if (
-        e.key == "Shift" &&
-        e.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT
-      ) {
-        shiftPressed1 = true;
-      } else if (e.key == "d" || e.key == "D") {
         rightPressed2 = true;
-      } else if (e.key == "a" || e.key == "A") {
+      } else if (e.key == "Left" || e.key == "ArrowLeft") {
         leftPressed2 = true;
-      } else if (e.key == "w" || e.key == "W") {
+      } else if (e.key == "Up" || e.key == "ArrowUp") {
         upPressed2 = true;
-      } else if (e.key == "s" || e.key == "S") {
+      } else if (e.key == "Down" || e.key == "ArrowDown") {
         downPressed2 = true;
       } else if (
         e.key == "Shift" &&
-        e.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT
+        e.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT
       ) {
         shiftPressed2 = true;
-      }
-      if (
+      } else if (e.key == "d" || e.key == "D") {
+        rightPressed1 = true;
+      } else if (e.key == "a" || e.key == "A") {
+        leftPressed1 = true;
+      } else if (e.key == "w" || e.key == "W") {
+        upPressed1 = true;
+      } else if (e.key == "s" || e.key == "S") {
+        downPressed1 = true;
+      } else if (
         e.key == "Shift" &&
-        e.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT
+        e.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT
       ) {
         shiftPressed1 = true;
       }
       if (
         e.key == "Shift" &&
-        e.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT
+        e.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT
       ) {
         shiftPressed2 = true;
+      }
+      if (
+        e.key == "Shift" &&
+        e.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT
+      ) {
+        shiftPressed1 = true;
       }
     }
 
     function keyUpHandler(e) {
       if (e.key == "Right" || e.key == "ArrowRight") {
-        rightPressed1 = false;
+        rightPressed2 = false;
       } else if (e.key == "Left" || e.key == "ArrowLeft") {
-        leftPressed1 = false;
+        leftPressed2 = false;
       } else if (e.key == "Up" || e.key == "ArrowUp") {
-        upPressed1 = false;
+        upPressed2 = false;
       } else if (e.key == "Down" || e.key == "ArrowDown") {
-        downPressed1 = false;
+        downPressed2 = false;
       } else if (
         e.key == "Shift" &&
         e.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT
       ) {
-        shiftPressed1 = false;
+        shiftPressed2 = false;
       } else if (e.key == "d" || e.key == "D") {
-        rightPressed2 = false;
+        rightPressed1 = false;
       } else if (e.key == "a" || e.key == "A") {
-        leftPressed2 = false;
+        leftPressed1 = false;
       } else if (e.key == "w" || e.key == "W") {
-        upPressed2 = false;
+        upPressed1 = false;
       } else if (e.key == "s" || e.key == "S") {
-        downPressed2 = false;
+        downPressed1 = false;
       } else if (
         e.key == "Shift" &&
         e.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT
       ) {
-        shiftPressed2 = false;
+        shiftPressed1 = false;
       }
       if (
         e.key == "Shift" &&
         e.location === KeyboardEvent.DOM_KEY_LOCATION_RIGHT
       ) {
-        shiftPressed1 = false;
+        shiftPressed2 = false;
         // Do not reset speedBoost1 and controlLoss1 here to allow gradual decay
       }
       if (
         e.key == "Shift" &&
         e.location === KeyboardEvent.DOM_KEY_LOCATION_LEFT
       ) {
-        shiftPressed2 = false;
+        shiftPressed1 = false;
         // Do not reset speedBoost2 and controlLoss2 here to allow gradual decay
       }
     }

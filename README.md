@@ -20,11 +20,11 @@ In Ball Fighters, two players control balls on a grid, aiming to cover as many s
 ## Controls
 
 - **Player 1**:
-  - Movement: Arrow keys (Up, Down, Left, Right)
-  - Speed Boost: Right Shift key
-- **Player 2**:
   - Movement: 'W', 'A', 'S', 'D' keys
   - Speed Boost: Left Shift key
+- **Player 2**:
+  - Movement: Arrow keys (Up, Down, Left, Right)
+  - Speed Boost: Right Shift key
 
 ## Mechanics
 
