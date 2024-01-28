@@ -2,6 +2,10 @@
 
 Ball Fighters is a dynamic, interactive browser-based game. Originally inspired by and built upon [Koen van Gilst's](https://koenvangilst.nl) Pong Wars, this reworked version introduces enhanced gameplay mechanics, visual elements, and interactive charts to track game dynamics.
 
+<div align="center">
+  <img src="https://github.com/Dicklesworthstone/ball_fighters/blob/main/non_representative_illustration.png" width="700">
+</div>
+
 ## Game Overview
 
 In Ball Fighters, two players control balls on a grid, aiming to cover as many squares as possible with their respective colors. The game incorporates unique mechanics like speed boosts and control influence, making it a challenging and engaging experience.
@@ -35,6 +39,12 @@ In Ball Fighters, two players control balls on a grid, aiming to cover as many s
 - **Acceleration Chart**: Shows changes in acceleration, highlighting dynamic movements and speed boosts.
 - **Score Chart**: Tracks the score differential between the two players over time.
 - **Control Chart**: Visualizes the control influence, representing the degree of deviation from the natural ball trajectory.
+
+## Screenshot
+
+<div align="center">
+  <img src="https://github.com/Dicklesworthstone/ball_fighters/blob/main/screenshot.png" width="700">
+</div>
 
 ## Credits
 
