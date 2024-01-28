@@ -10,6 +10,9 @@ Ball Fighters is a dynamic, interactive browser-based game. Originally inspired 
 
 In Ball Fighters, two players control balls on a grid, aiming to cover as many squares as possible with their respective colors. The game incorporates unique mechanics like speed boosts and control influence, making it a challenging and engaging experience.
 
+## Play in Browser
+The game is hosted on GitHub Pages and can be played [here](https://dicklesworthstone.github.io/ball_fighters/).
+
 ## Features
 
 - **Dual-Player Gameplay**: Two players compete against each other, each controlling their own ball on the canvas.
